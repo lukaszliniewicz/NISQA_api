@@ -1,3 +1,113 @@
+# NISQA API
+
+This is a very simple FastAPI implementation of NISQA. Feel free to contribute.
+
+With the NISQA API, you can send audio files for quality assessment and receive the predicted scores. The API supports both the NISQA model for speech quality prediction and the NISQA-TTS model for naturalness prediction of synthetic speech.
+
+## Getting Started
+
+To use the NISQA API, follow these steps:
+
+1. Clone the NISQA repository:
+   ```bash
+   git clone https://github.com/your-username/NISQA.git
+   ```
+
+2. Navigate to the cloned repository directory:
+   ```bash
+   cd NISQA
+   ```
+
+3. Choose one of the following options to set up and run the API:
+
+   a. **Use the provided `start.bat` script (Windows only):**
+      - Double-click on the `start.bat` file or run it from the command prompt.
+      - The script will automatically set up the environment, install the necessary dependencies, and start the API.
+      - The API will be accessible at `http://127.0.0.1:8356`.
+      - Press any key in the command prompt window to stop the API.
+
+   b. **Run the API manually:**
+      - Ensure that you have Anaconda or Miniconda installed.
+      - Open a terminal or command prompt within the cloned repository directory.
+      - Create a new conda environment with the required dependencies by running:
+        ```bash
+        conda env create -f env.yml
+        ```
+      - Activate the newly created environment:
+        ```bash
+        conda activate nisqa
+        ```
+      - Install the additional dependencies for the API:
+        ```bash
+        pip install -r requirements.txt
+        ```
+      - Run the following command to start the API:
+        ```bash
+        uvicorn api:app --host 127.0.0.1 --port 8356
+        ```
+      - The API will be accessible at `http://127.0.0.1:8356`.
+      - Press `Ctrl+C` in the terminal to stop the API.
+
+## API Usage
+
+The API provides a single endpoint `/predict` that accepts POST requests with the following parameters:
+
+- `audio_file` (required): The audio file to be processed, sent as a file upload.
+- `pretrained_model` (required): The name of the pretrained model to use. It can be either `nisqa.tar` for speech quality prediction or `nisqa_tts.tar` for TTS naturalness prediction.
+- `ms_channel` (optional): The audio channel to use for stereo files. Default is `None`.
+- `output_dir` (optional): The output directory for the results. If not specified, the default directory will be the repository directory. The generated files will be automatically removed after the prediction.
+
+The API will return a JSON response with the predicted scores based on the pretrained model used:
+
+- For `nisqa_tts.tar`, the API will return:
+  ```json
+  {
+    "mos": float,
+    "model": string
+  }
+  ```
+  `mos`: The predicted Mean Opinion Score (MOS) for naturalness.
+  `model`: The name of the pretrained model used.
+
+- For `nisqa.tar`, the API will return:
+  ```json
+  {
+    "mos": float,
+    "noi": float,
+    "dis": float,
+    "col": float,
+    "loud": float,
+    "model": string
+  }
+  ```
+  `mos`: The predicted Mean Opinion Score (MOS) for overall speech quality.
+  `noi`: The predicted score for the Noisiness dimension.
+  `dis`: The predicted score for the Discontinuity dimension.
+  `col`: The predicted score for the Coloration dimension.
+  `loud`: The predicted score for the Loudness dimension.
+  `model`: The name of the pretrained model used.
+
+### Example Python Usage
+
+Here's an example of how to use the NISQA API with Python:
+
+```python
+import requests
+
+url = "http://127.0.0.1:8356/predict"
+files = {"audio_file": open("path/to/your/audio/file.wav", "rb")}
+data = {
+    "pretrained_model": "nisqa.tar",  # or "nisqa_tts.tar" for TTS naturalness prediction
+    "ms_channel": 0,  # optional, specify the audio channel for stereo files
+}
+
+response = requests.post(url, files=files, data=data)
+print(response.json())
+```
+
+Note that specifying the `output_dir` parameter is optional. If not provided, the default directory will be the repository directory, and the generated files will be automatically removed after the prediction.
+
+
 # NISQA: Speech Quality and Naturalness Assessment
 
 *+++ News: The NISQA model has recently been updated to NISQA v2.0. The new version offers multidimensional predictions with higher accuracy and allows for training and finetuning the model.*
